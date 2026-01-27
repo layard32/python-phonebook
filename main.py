@@ -55,7 +55,7 @@ class PhoneBookApp:
         btn_nuovo = tk.Button(button_frame, text="Nuovo", font=("", 12), command=self.open_editor)
         btn_nuovo.pack(side=tk.LEFT, padx=10)
         
-        btn_modifica = tk.Button(button_frame, text="Modifica", font=("", 12))
+        btn_modifica = tk.Button(button_frame, text="Modifica", font=("", 12), command=self.edit_persona)
         btn_modifica.pack(side=tk.LEFT, padx=10)
         
         btn_elimina = tk.Button(button_frame, text="Elimina", font=("", 12), command=self.delete_persona)
@@ -88,10 +88,23 @@ class PhoneBookApp:
             messagebox.showinfo("Successo", "Persona eliminata correttamente.")
 
 
+    # metodo per modificare una persona
+    def edit_persona(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Attenzione", "Seleziona una persona da modificare.")
+            return
+        # apro l'editor usato anche per creare una nuova persona, ma con i campi precompilati
+        index = self.tree.index(selected_item)
+        selected_persona = self.persone[index]
+        self.open_editor(selected_persona)
+
+
     # creo la finestra per creare / modificare una persona
-    def open_editor(self):    
+    def open_editor(self, selected_persona=None):    
         editor = tk.Toplevel(self.root)
-        editor.title("Editor Persona")
+        title = "Modifica Persona" if selected_persona else "Nuova Persona"
+        editor.title(title)
         editor.geometry("360x400")
         editor.resizable(False, False)
         editor.grab_set() # per bloccare l'interazione con la finestra principale
@@ -106,6 +119,14 @@ class PhoneBookApp:
             entry = tk.Entry(editor, font=("", 12), width=25)
             entry.grid(row=i, column=1, padx=10, pady=pady_value)
             self.entries[label] = entry
+
+        # se sto modificando precompilo i campi
+        if selected_persona:
+            self.entries["Nome"].insert(0, selected_persona.nome)
+            self.entries["Cognome"].insert(0, selected_persona.cognome)
+            self.entries["Indirizzo"].insert(0, selected_persona.indirizzo)
+            self.entries["Telefono"].insert(0, selected_persona.telefono)
+            self.entries["Età"].insert(0, selected_persona.eta)
 
         editor.grid_rowconfigure(len(labels), weight=1)
 
@@ -134,9 +155,18 @@ class PhoneBookApp:
                 messagebox.showerror("Errore", "Il numero di telefono deve contenere solo cifre!")
                 return
             
-            # se la validazione è ok, creo la nuova persona e la aggiungo alla lista delle persone
-            nuova_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
-            self.persone.append(nuova_persona)
+            # se la validazione è ok, creo o aggiorno la persona
+            if selected_persona:
+                # aggiorno i campi della persona esistente
+                selected_persona.nome = nome
+                selected_persona.cognome = cognome
+                selected_persona.indirizzo = indirizzo
+                selected_persona.telefono = telefono
+                selected_persona.eta = int(eta_str)
+            else:
+                # creo una nuova persona e la aggiungo alla lista
+                new_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
+                self.persone.append(new_persona)
             
             # aggiorno e chiudo la finestra
             self.update_table() # Richiamo il metodo creato al punto 1
@@ -148,8 +178,11 @@ class PhoneBookApp:
         # annulla chiude la finestra senza fare nulla, salva richiama la nested function save_persona
         button_frame = tk.Frame(editor)
         button_frame.grid(row=len(labels)+1, column=0, columnspan=2, pady=20, sticky=tk.S)
-        btn_salva = tk.Button(button_frame, text="Salva", font=("", 12), width=10, command=save_persona)
+
+        btn_salva_label = "Modifica" if selected_persona else "Salva"
+        btn_salva = tk.Button(button_frame, text=btn_salva_label, font=("", 12), width=10, command=save_persona)
         btn_salva.pack(side=tk.LEFT, padx=10)
+
         btn_annulla = tk.Button(button_frame, text="Annulla", font=("", 12), width=10, command=editor.destroy)
         btn_annulla.pack(side=tk.LEFT, padx=10)
 
