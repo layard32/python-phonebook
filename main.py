@@ -16,6 +16,7 @@ class PhoneBookApp:
         self.create_table()
         self.create_buttons()
 
+
     # per la tabella utilizzo Treeview, che in teoria serve per mostrare alberi gerarchici
     # ma può essere usato anche per tabelle semplici grazie a show = "headings"
     def create_table(self):
@@ -25,6 +26,7 @@ class PhoneBookApp:
             # configuro lo stile per gli heading con font più grande
             style = ttk.Style()
             style.configure("Treeview.Heading", font=("", 12))
+            style.configure("Treeview", font=("", 11))  
 
             # creo l'oggetto Treeview per mostrare la tabella  
             self.tree = ttk.Treeview(self.root, columns=required_columns, show="headings")
@@ -56,41 +58,102 @@ class PhoneBookApp:
         btn_modifica = tk.Button(button_frame, text="Modifica", font=("", 12))
         btn_modifica.pack(side=tk.LEFT, padx=10)
         
-        btn_elimina = tk.Button(button_frame, text="Elimina", font=("", 12))
+        btn_elimina = tk.Button(button_frame, text="Elimina", font=("", 12), command=self.delete_persona)
         btn_elimina.pack(side=tk.LEFT, padx=10)
     
 
-    def open_editor(self):
-        # creo la finestra per creare / modificare una persona
+    # metodo per aggiornare la tabella con i dati della lista self.persone
+    def update_table(self):
+        # rimuovo tutte le righe
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        # reinserisco i dati presi dalla lista delle persone
+        for p in self.persone:
+            self.tree.insert("", "end", values=(p.nome, p.cognome, p.telefono))
+
+
+    # metodo per eliminare la persona selezionata dopo aver confermato
+    def delete_persona(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Attenzione", "Seleziona una persona da eliminare.")
+            return
+        
+        confirm = messagebox.askyesno("Conferma Eliminazione", "Sei sicuro di voler eliminare la persona selezionata?")
+        if confirm:
+            item_index = self.tree.index(selected_item)
+            del self.persone[item_index]
+            self.update_table()
+            messagebox.showinfo("Successo", "Persona eliminata correttamente.")
+
+
+    # creo la finestra per creare / modificare una persona
+    def open_editor(self):    
         editor = tk.Toplevel(self.root)
         editor.title("Editor Persona")
         editor.geometry("360x400")
         editor.resizable(False, False)
-        # per bloccare l'interazione con la finestra principale
-        editor.grab_set()
-        # utilizzo grid per disporre i campi in modo ordinato
+        editor.grab_set() # per bloccare l'interazione con la finestra principale
+
         labels = ["Nome", "Cognome", "Indirizzo", "Telefono", "Età"]
         self.entries = {} # dizionario per tenere traccia dei campi di input
+
         for i, label in enumerate(labels):
-            # aggiungo padding superiore maggiore solo per la prima riga
             pady_value = (30, 10) if i == 0 else 10
             tk.Label(editor, text=label, font=("", 12)).grid(row=i, column=0, padx=10, pady=pady_value, sticky=tk.W)
+
             entry = tk.Entry(editor, font=("", 12), width=25)
             entry.grid(row=i, column=1, padx=10, pady=pady_value)
             self.entries[label] = entry
 
-        # configurare la griglia per espandere lo spazio prima dei pulsanti
         editor.grid_rowconfigure(len(labels), weight=1)
 
+        # definisco come nested function la logica di salvataggio
+        def save_persona():
+            # estraggo i dati da self.entries
+            nome = self.entries["Nome"].get()
+            cognome = self.entries["Cognome"].get()
+            indirizzo = self.entries["Indirizzo"].get()
+            telefono = self.entries["Telefono"].get()
+            eta_str = self.entries["Età"].get()
+
+            # validazione dei dati
+            if not nome or not cognome or not telefono:
+                # presuppongo siano obbligatori poiché mostrati nella tabella principale
+                messagebox.showerror("Errore", "Nome, Cognome e Telefono sono obbligatori!")
+                return 
+            
+            # Controllo che l'età sia un numero e intero
+            if not eta_str.isdigit():
+                 messagebox.showerror("Errore", "L'età deve essere un numero intero!")
+                 return
+
+            # controllo il telefono sia composto solo da numeri
+            if not telefono.isdigit():
+                messagebox.showerror("Errore", "Il numero di telefono deve contenere solo cifre!")
+                return
+            
+            # se la validazione è ok, creo la nuova persona e la aggiungo alla lista delle persone
+            nuova_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
+            self.persone.append(nuova_persona)
+            
+            # aggiorno e chiudo la finestra
+            self.update_table() # Richiamo il metodo creato al punto 1
+            editor.destroy()    # Chiudo la finestra
+            messagebox.showinfo("Successo", "Contatto salvato correttamente!")
+
+
         # dispongo i pulsanti Salva e Annulla nella parte più bassa della finestra
+        # annulla chiude la finestra senza fare nulla, salva richiama la nested function save_persona
         button_frame = tk.Frame(editor)
         button_frame.grid(row=len(labels)+1, column=0, columnspan=2, pady=20, sticky=tk.S)
-        # TODO implementazione azione salvataggio
-        btn_salva = tk.Button(button_frame, text="Salva", font=("", 12), width=10)
+        btn_salva = tk.Button(button_frame, text="Salva", font=("", 12), width=10, command=save_persona)
         btn_salva.pack(side=tk.LEFT, padx=10)
-        # annulla chiude semplicemente l'editor senza salvare o fare nulla
         btn_annulla = tk.Button(button_frame, text="Annulla", font=("", 12), width=10, command=editor.destroy)
         btn_annulla.pack(side=tk.LEFT, padx=10)
+
+    
 
 
 
