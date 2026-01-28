@@ -79,3 +79,29 @@ class DataIo:
                 # se c'è un errore nell'apertura del file
                 except Exception as e:
                     print(f"Errore nel caricamento del file {filename}: {e}")
+        
+
+    # metodi (gli unici pubblici) per salvare ed eliminare persone
+    def save_persona(self, persona: Persona):
+        # se la persona non ha un id, le assegno il prossimo disponibile
+        if persona.id is None:
+            persona.id = self._get_next_id()
+        
+        # creo il nome del file
+        filename = f"Persona{persona.id}.txt"
+        file_path = os.path.join(self.data_folder_path, filename)
+
+        # scrivo i dati nel file con il formato specificato
+        with open(file_path, 'w') as file:
+            file.write(f"{persona.nome};{persona.cognome};{persona.indirizzo};{persona.telefono};{persona.eta}")
+
+    def delete_persona(self, persona: Persona):
+        # elimino il file e poi rimuovo dalla lista
+        if persona.id is not None:
+            filename = f"Persona{persona.id}.txt"
+            file_path = os.path.join(self.data_folder_path, filename)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        
+        if persona in self.persone:
+            self.persone.remove(persona)
