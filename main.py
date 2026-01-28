@@ -188,8 +188,6 @@ class PhoneBookApp:
 
     
 
-
-
 # avvio l'applicazione
 if __name__ == "__main__":
     root = tk.Tk()
