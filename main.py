@@ -12,6 +12,7 @@ class PhoneBookApp:
         self.root = root
         self.root.title("Rubrica Telefonica")
         self.root.geometry("800x600")
+        self.root.place_window_center()
 
         # configurazione di stile extra per la toolbar e UI
         style = ttk.Style()
@@ -134,7 +135,8 @@ class PhoneBookApp:
         editor = tk.Toplevel(self.root)
         title = "Modifica Persona" if selected_persona else "Nuova Persona"
         editor.title(title)
-        editor.geometry("430x430")
+        # per far comparire la finestra al centro della finestra principale
+        editor.geometry("430x430+{}+{}".format(int(self.root.winfo_x() + (self.root.winfo_width() - 430) / 2), int(self.root.winfo_y() + (self.root.winfo_height() - 430) / 2)))
         editor.resizable(False, False)
         editor.grab_set() # per bloccare l'interazione con la finestra principale
 
