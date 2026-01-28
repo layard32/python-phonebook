@@ -12,15 +12,32 @@ class PhoneBookApp:
         self.root.title("Rubrica Telefonica")
         self.root.geometry("800x600")
 
-        # configurazione di stile extra per la toolbar
+        # configurazione di stile extra per la toolbar e UI
         style = ttk.Style()
-        style.configure("Toolbar.TFrame", background="#e1e1e1", borderwidth=0, relief="flat") 
+        style.configure("Toolbar.TFrame", background="#e9ecef", borderwidth=0, relief="flat")
+        style.configure(
+            "Toolbar.TButton",
+            font=("Segoe UI", 10),
+            padding=(10, 6),
+        )
+        style.map(
+            "Toolbar.TButton",
+            foreground=[("disabled", "#9aa0a6")],
+        )
+        style.configure("Treeview.Heading", font=("Segoe UI Semibold", 11))
+        style.configure("Treeview", font=("Segoe UI", 10), rowheight=28)
 
         # io gestisce i dati
         self.io_handler = DataIo()
         
         # metodi per creare l'interfaccia, composta da toolbar e tabela
         self.create_toolbar()
+
+        # contenitore principale con padding per un look più arioso
+        content = ttk.Frame(self.root, padding=(12, 8, 12, 12))
+        content.pack(fill=tk.BOTH, expand=True)
+        self.content = content
+
         self.create_table()
 
         # all'apertura dell'app aggiorna subito i dati
@@ -34,13 +51,8 @@ class PhoneBookApp:
             # mostro le tre tabelle come specificato nei requisiti
             required_columns = ("Nome", "Cognome", "Telefono")
 
-            # configuro lo stile per gli heading con font più grande
-            style = ttk.Style()
-            style.configure("Treeview.Heading", font=("", 12))
-            style.configure("Treeview", font=("", 11))  
-
             # creo l'oggetto Treeview per mostrare la tabella  
-            self.tree = ttk.Treeview(self.root, columns=required_columns, show="headings")
+            self.tree = ttk.Treeview(self.content, columns=required_columns, show="headings")
 
             # configuro le intestazioni
             self.tree.heading("Nome", text="Nome")
@@ -52,31 +64,28 @@ class PhoneBookApp:
             self.tree.column("Cognome", width=200)
             self.tree.column("Telefono", width=200)
 
-            # impacchetto dentro la finestra principale con padding e espansione
-            self.tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            # impacchetto dentro il contenitore principale con padding e espansione
+            self.tree.pack(fill=tk.BOTH, expand=True)
 
 
     # per i pulsanti utilizzo una toolbar con i pulsanti
     def create_toolbar(self):
-        # Usiamo uno stile personalizzato per il colore di sfondo
-        toolbar = ttk.Frame(self.root, style="Toolbar.TFrame", padding="2")
-        # side=tk.TOP la ancora in alto. fill=tk.X la fa espandere orizzontalmente.
+        # stile della toolbar
+        toolbar = ttk.Frame(self.root, style="Toolbar.TFrame", padding=(8, 6))
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        # 2. Stile dei bottoni moderni (ttk.Button)
-        # Le emoji funzionano e sono un modo rapido per avere icone
-        btn_nuovo = ttk.Button(toolbar, text="➕ Nuovo", command=lambda: self.open_editor(None))
-        btn_nuovo.pack(side=tk.LEFT, padx=2, pady=2)
+        # uso le emoji per avere delle icone senza gestire immagini esterne
+        btn_nuovo = ttk.Button(toolbar, text="➕ Nuovo", style="Toolbar.TButton", command=lambda: self.open_editor(None))
+        btn_nuovo.pack(side=tk.LEFT, padx=4, pady=2)
         
-        btn_modifica = ttk.Button(toolbar, text="✏️ Modifica", command=self.edit_persona)
-        btn_modifica.pack(side=tk.LEFT, padx=2, pady=2)
+        btn_modifica = ttk.Button(toolbar, text="✏️ Modifica", style="Toolbar.TButton", command=self.edit_persona)
+        btn_modifica.pack(side=tk.LEFT, padx=4, pady=2)
         
-        btn_elimina = ttk.Button(toolbar, text="🗑️ Elimina", command=self.delete_persona)
-        btn_elimina.pack(side=tk.LEFT, padx=2, pady=2)
+        btn_elimina = ttk.Button(toolbar, text="🗑️ Elimina", style="Toolbar.TButton", command=self.delete_persona)
+        btn_elimina.pack(side=tk.LEFT, padx=4, pady=2)
         
-        # Bottone Esci a destra
-        btn_esci = ttk.Button(toolbar, text="❌ Esci", command=self.root.quit)
-        btn_esci.pack(side=tk.RIGHT, padx=2, pady=2)
+        btn_esci = ttk.Button(toolbar, text="❌ Esci", style="Toolbar.TButton", command=self.root.quit)
+        btn_esci.pack(side=tk.RIGHT, padx=4, pady=2)
     
 
     # metodo per aggiornare la tabella con i dati della lista self.persone
