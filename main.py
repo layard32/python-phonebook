@@ -74,7 +74,7 @@ class PhoneBookApp:
         toolbar = ttk.Frame(self.root, style="Toolbar.TFrame", padding=(8, 6))
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        # uso le emoji per avere delle icone senza gestire immagini esterne
+        # uso le emoji per avere delle icone senza gestire immagini
         btn_nuovo = ttk.Button(toolbar, text="➕ Nuovo", style="Toolbar.TButton", command=lambda: self.open_editor(None))
         btn_nuovo.pack(side=tk.LEFT, padx=4, pady=2)
         
@@ -83,9 +83,6 @@ class PhoneBookApp:
         
         btn_elimina = ttk.Button(toolbar, text="🗑️ Elimina", style="Toolbar.TButton", command=self.delete_persona)
         btn_elimina.pack(side=tk.LEFT, padx=4, pady=2)
-        
-        btn_esci = ttk.Button(toolbar, text="❌ Esci", style="Toolbar.TButton", command=self.root.quit)
-        btn_esci.pack(side=tk.RIGHT, padx=4, pady=2)
     
 
     # metodo per aggiornare la tabella con i dati della lista self.persone
@@ -231,6 +228,6 @@ class PhoneBookApp:
 
 # avvio l'applicazione
 if __name__ == "__main__":
-    root = ttk.Window(themename="flatly") 
+    root = ttk.Window(themename="cosmo") 
     app = PhoneBookApp(root)
     root.mainloop()
