@@ -1,6 +1,7 @@
 from persona import Persona
 import tkinter as tk
 from tkinter import ttk, messagebox
+from data_io import DataIo
 
 # creo l'interfaccia grafica con tkinter
 class PhoneBookApp:
@@ -9,12 +10,16 @@ class PhoneBookApp:
         self.root.title("Rubrica Telefonica")
         self.root.geometry("800x600")
         
-        # lista per memorizzare le persone
-        self.persone = []
+        # io gestisce i dati
+        self.io_handler = DataIo()
         
         # metodi per creare l'interfaccia, composta da tabella e bottoni
         self.create_table()
         self.create_buttons()
+
+        # all'apertura dell'app aggiorna subito i dati
+        self.io_handler.update_data()
+        self.update_table()
 
 
     # per la tabella utilizzo Treeview, che in teoria serve per mostrare alberi gerarchici
@@ -68,8 +73,8 @@ class PhoneBookApp:
         for item in self.tree.get_children():
             self.tree.delete(item)
             
-        # reinserisco i dati presi dalla lista delle persone
-        for p in self.persone:
+        # reinserisco i dati presi dall'io handler
+        for p in self.io_handler.persone:
             self.tree.insert("", "end", values=(p.nome, p.cognome, p.telefono))
 
 
@@ -82,10 +87,17 @@ class PhoneBookApp:
         
         confirm = messagebox.askyesno("Conferma Eliminazione", "Sei sicuro di voler eliminare la persona selezionata?")
         if confirm:
-            item_index = self.tree.index(selected_item)
-            del self.persone[item_index]
-            self.update_table()
-            messagebox.showinfo("Successo", "Persona eliminata correttamente.")
+            # cancello tramite l'io handler, che richiede in input la persona
+            persona_index = self.tree.index(selected_item[0])
+            persona_to_delete = self.io_handler.persone[persona_index]
+
+            try:
+                self.io_handler.delete_persona(persona_to_delete)
+                # aggiorno la tabella
+                self.update_table()
+                messagebox.showinfo("Successo", "Persona eliminata correttamente.")
+            except Exception as e:
+                messagebox.showerror("Errore", f"Impossibile eliminare: {e}")
 
 
     # metodo per modificare una persona
@@ -95,12 +107,13 @@ class PhoneBookApp:
             messagebox.showwarning("Attenzione", "Seleziona una persona da modificare.")
             return
         # apro l'editor usato anche per creare una nuova persona, ma con i campi precompilati
-        index = self.tree.index(selected_item)
-        selected_persona = self.persone[index]
+        index = self.tree.index(selected_item[0])
+        selected_persona = self.io_handler.persone[index]
         self.open_editor(selected_persona)
 
 
     # creo la finestra per creare / modificare una persona
+    # l'argomento opzionale selected_persona indica se sto modificando una persona esistente
     def open_editor(self, selected_persona=None):    
         editor = tk.Toplevel(self.root)
         title = "Modifica Persona" if selected_persona else "Nuova Persona"
@@ -131,6 +144,8 @@ class PhoneBookApp:
         editor.grid_rowconfigure(len(labels), weight=1)
 
         # definisco come nested function la logica di salvataggio
+        # questo metodo richiama il metodo dentro l'io per salvare effettivamente la persona
+        # qua si fa soltanto parsing e validazione dei dati
         def save_persona():
             # estraggo i dati da self.entries
             nome = self.entries["Nome"].get()
@@ -155,24 +170,28 @@ class PhoneBookApp:
                 messagebox.showerror("Errore", "Il numero di telefono deve contenere solo cifre!")
                 return
             
-            # se la validazione è ok, creo o aggiorno la persona
-            if selected_persona:
-                # aggiorno i campi della persona esistente
-                selected_persona.nome = nome
-                selected_persona.cognome = cognome
-                selected_persona.indirizzo = indirizzo
-                selected_persona.telefono = telefono
-                selected_persona.eta = int(eta_str)
-            else:
-                # creo una nuova persona e la aggiungo alla lista
-                new_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
-                self.persone.append(new_persona)
+            try:
+                if selected_persona:
+                    # se si sta modificando
+                    selected_persona.nome = nome
+                    selected_persona.cognome = cognome
+                    selected_persona.indirizzo = indirizzo
+                    selected_persona.telefono = telefono
+                    selected_persona.eta = int(eta_str)
+                    # il manager sovrascriverà il file esistente con i nuovi dati
+                    self.io_handler.save_persona(selected_persona)
+                else:
+                    # se si sta creando una nuova persona
+                    new_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
+                    self.io_handler.save_persona(new_persona)
+                
+                # aggiorno tabella, chiudo finestra e mostro messaggio di successa
+                self.update_table()
+                editor.destroy()
+                messagebox.showinfo("Successo", "Dati salvati!")
             
-            # aggiorno e chiudo la finestra
-            self.update_table() # Richiamo il metodo creato al punto 1
-            editor.destroy()    # Chiudo la finestra
-            messagebox.showinfo("Successo", "Contatto salvato correttamente!")
-
+            except Exception as e:
+                messagebox.showerror("Errore durante il salvataggio", str(e))
 
         # dispongo i pulsanti Salva e Annulla nella parte più bassa della finestra
         # annulla chiude la finestra senza fare nulla, salva richiama la nested function save_persona
