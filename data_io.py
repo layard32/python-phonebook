@@ -38,7 +38,7 @@ class DataIo:
         
         max_id = 0
         for persona in self.persone:
-            if persona.id is not None and persona.id > max.id:
+            if persona.id is not None and persona.id > max_id:
                 max_id = persona.id
         return max_id + 1
 

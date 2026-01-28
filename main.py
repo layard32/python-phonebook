@@ -185,7 +185,8 @@ class PhoneBookApp:
                     new_persona = Persona(nome, cognome, indirizzo, telefono, int(eta_str))
                     self.io_handler.save_persona(new_persona)
                 
-                # aggiorno tabella, chiudo finestra e mostro messaggio di successa
+                # ricarico i dati dai file e aggiorno la tabella
+                self.io_handler.update_data()
                 self.update_table()
                 editor.destroy()
                 messagebox.showinfo("Successo", "Dati salvati!")
