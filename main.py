@@ -4,6 +4,7 @@ from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from data_io import DataIo
+from login import LoginWindow
 
 # creo l'interfaccia grafica con tkinter
 class PhoneBookApp:
@@ -30,15 +31,12 @@ class PhoneBookApp:
         # io gestisce i dati
         self.io_handler = DataIo()
         
-        # metodi per creare l'interfaccia, composta da toolbar e tabela
-        self.create_toolbar()
-
-        # contenitore principale con padding per un look più arioso
+        # metodi per creare l'interfaccia, composta da toolbar e tabella
+        self._create_toolbar()
         content = ttk.Frame(self.root, padding=(12, 8, 12, 12))
         content.pack(fill=tk.BOTH, expand=True)
         self.content = content
-
-        self.create_table()
+        self._create_table()
 
         # all'apertura dell'app aggiorna subito i dati
         self.io_handler.update_data()
@@ -47,7 +45,7 @@ class PhoneBookApp:
 
     # per la tabella utilizzo Treeview, che in teoria serve per mostrare alberi gerarchici
     # ma può essere usato anche per tabelle semplici grazie a show = "headings"
-    def create_table(self):
+    def _create_table(self):
             # mostro le tre tabelle come specificato nei requisiti
             required_columns = ("Nome", "Cognome", "Telefono")
 
@@ -69,7 +67,7 @@ class PhoneBookApp:
 
 
     # per i pulsanti utilizzo una toolbar con i pulsanti
-    def create_toolbar(self):
+    def _create_toolbar(self):
         # stile della toolbar
         toolbar = ttk.Frame(self.root, style="Toolbar.TFrame", padding=(8, 6))
         toolbar.pack(side=tk.TOP, fill=tk.X)
@@ -228,6 +226,22 @@ class PhoneBookApp:
 
 # avvio l'applicazione
 if __name__ == "__main__":
+    # utilizzo lo stile da ttkbootstrap
     root = ttk.Window(themename="cosmo") 
-    app = PhoneBookApp(root)
-    root.mainloop()
+
+    # nascondo la finestra principale
+    root.withdraw()
+
+    # apro la finestra di login
+    login_window = LoginWindow(root)
+    # blocco l'esecuzione della finestra principale finché non chiudo il login
+    root.wait_window(login_window)
+
+    # se il login è andato a buon fine, mostro la finestra principale
+    if login_window.login_successful:
+        root.deiconify()
+        app = PhoneBookApp(root)
+        root.mainloop()
+    else:
+        # chiudo l'app
+        root.destroy()
