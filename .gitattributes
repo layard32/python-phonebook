@@ -1,5 +1,2 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-
-# ignora cartella __pycache__ 
-__pycache__/  binary
