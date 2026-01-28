@@ -95,6 +95,7 @@ class DataIo:
         with open(file_path, 'w') as file:
             file.write(f"{persona.nome};{persona.cognome};{persona.indirizzo};{persona.telefono};{persona.eta}")
 
+
     def delete_persona(self, persona: Persona):
         # elimino il file e poi rimuovo dalla lista
         if persona.id is not None:

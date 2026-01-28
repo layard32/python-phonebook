@@ -1,6 +1,8 @@
 from persona import Persona
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 from data_io import DataIo
 
 # creo l'interfaccia grafica con tkinter
@@ -9,13 +11,17 @@ class PhoneBookApp:
         self.root = root
         self.root.title("Rubrica Telefonica")
         self.root.geometry("800x600")
-        
+
+        # configurazione di stile extra per la toolbar
+        style = ttk.Style()
+        style.configure("Toolbar.TFrame", background="#e1e1e1", borderwidth=0, relief="flat") 
+
         # io gestisce i dati
         self.io_handler = DataIo()
         
-        # metodi per creare l'interfaccia, composta da tabella e bottoni
+        # metodi per creare l'interfaccia, composta da toolbar e tabela
+        self.create_toolbar()
         self.create_table()
-        self.create_buttons()
 
         # all'apertura dell'app aggiorna subito i dati
         self.io_handler.update_data()
@@ -50,21 +56,27 @@ class PhoneBookApp:
             self.tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
 
-    # per i pulsanti utilizzo un contenitore Frame con dentro i Buttons
-    def create_buttons(self):
-        # contenitore orizzontale e in basso (centrato)
-        button_frame = tk.Frame(self.root)
-        button_frame.pack(side=tk.BOTTOM, padx=20, pady=20)
+    # per i pulsanti utilizzo una toolbar con i pulsanti
+    def create_toolbar(self):
+        # Usiamo uno stile personalizzato per il colore di sfondo
+        toolbar = ttk.Frame(self.root, style="Toolbar.TFrame", padding="2")
+        # side=tk.TOP la ancora in alto. fill=tk.X la fa espandere orizzontalmente.
+        toolbar.pack(side=tk.TOP, fill=tk.X)
 
-        # creo i tre bottoni TODO le azioni
-        btn_nuovo = tk.Button(button_frame, text="Nuovo", font=("", 12), command=self.open_editor)
-        btn_nuovo.pack(side=tk.LEFT, padx=10)
+        # 2. Stile dei bottoni moderni (ttk.Button)
+        # Le emoji funzionano e sono un modo rapido per avere icone
+        btn_nuovo = ttk.Button(toolbar, text="➕ Nuovo", command=lambda: self.open_editor(None))
+        btn_nuovo.pack(side=tk.LEFT, padx=2, pady=2)
         
-        btn_modifica = tk.Button(button_frame, text="Modifica", font=("", 12), command=self.edit_persona)
-        btn_modifica.pack(side=tk.LEFT, padx=10)
+        btn_modifica = ttk.Button(toolbar, text="✏️ Modifica", command=self.edit_persona)
+        btn_modifica.pack(side=tk.LEFT, padx=2, pady=2)
         
-        btn_elimina = tk.Button(button_frame, text="Elimina", font=("", 12), command=self.delete_persona)
-        btn_elimina.pack(side=tk.LEFT, padx=10)
+        btn_elimina = ttk.Button(toolbar, text="🗑️ Elimina", command=self.delete_persona)
+        btn_elimina.pack(side=tk.LEFT, padx=2, pady=2)
+        
+        # Bottone Esci a destra
+        btn_esci = ttk.Button(toolbar, text="❌ Esci", command=self.root.quit)
+        btn_esci.pack(side=tk.RIGHT, padx=2, pady=2)
     
 
     # metodo per aggiornare la tabella con i dati della lista self.persone
@@ -118,7 +130,7 @@ class PhoneBookApp:
         editor = tk.Toplevel(self.root)
         title = "Modifica Persona" if selected_persona else "Nuova Persona"
         editor.title(title)
-        editor.geometry("360x400")
+        editor.geometry("430x430")
         editor.resizable(False, False)
         editor.grab_set() # per bloccare l'interazione con la finestra principale
 
@@ -210,6 +222,6 @@ class PhoneBookApp:
 
 # avvio l'applicazione
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ttk.Window(themename="flatly") 
     app = PhoneBookApp(root)
     root.mainloop()
